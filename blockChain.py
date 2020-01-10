@@ -1,20 +1,22 @@
 import time
+import hashlib
+import json
+
 
 class BlockChain():
     
     def __init__(self):
         self.chain = []
-        self.transactions = []
-        self.nodes = set()
+        self.current_transactions = []
+        self.chain = []
         #Genisis block
 
-        self.new_block = new_block(prev_hash="1", proof =100)
-    
+        self.new_block(previous_hash=1, proof =100)
 
-    def new_block(self, proof, previous_hash):
+    def new_block(self, previous_hash, proof):
         block = {
-            'index' = len(self.chain) +1,
-            'timestamp': time(),
+            'index' : len(self.chain) +1,
+            'timestamp' :  time.time(),
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1])
             }
@@ -24,25 +26,38 @@ class BlockChain():
         return block
     
     
-    def new_transaction(self, sender, recipient, ammount):
-
+    def new_transaction(self, sender, recipient, amount):
         self.current_transactions.append({
-            'sender' = sender,
-            'recipient' = recipient,
-            'ammount' = ammount,
+            'sender' : sender,
+            'recipient' : recipient,
+            'amount' : amount,
             })
 
         return self.last_block['index'] + 1
     @property
-    def lastBlock(self):
+    def last_block(self):
         return self.chain[-1]
     
     @staticmethod
     def hash(block):
+        #Sorted to make sure we have
         block_string = json.dumps(block, sort_keys = True).encode()
-        return hashlib.sha25(block_string).hexdigest()
+        return hashlib.sha256(block_string).hexdigest()
 
-    def proof_of_word(self, last_block):
+    def proof_of_work(self, last_proof):
+        proof = 0
+        while self.valid_proof(last_proof, proof) == False:
+            proof +=1
+        return proof
+
+    @staticmethod
+    def valid_proof(last_proof, proof):
+        guess = ('{' + str(last_proof) + str(proof) + '}').encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash[:4] == '1234'
+
+
+
         
         
 
