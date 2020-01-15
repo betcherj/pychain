@@ -1,6 +1,6 @@
 import requests
-from pychain.scoreScraper import get_information
-
+from scoreScraper import get_information
+import json
 class SportsEvent():
 
     def __init__(self, league, teams, date):
@@ -15,4 +15,11 @@ class SportsEvent():
 
 if __name__ == '__main__':
     game = SportsEvent('nba', ['pistons', 'cavaliers'], '20200107')
-    print(get_information(game))
+    info = get_information(game)
+
+    print(json.loads(info))
+
+    # d = json.loads(info)
+    # d['events'][0]['competitions'][0]['competitors'][0]['score']
+    #   gives the score of one of the teams
+

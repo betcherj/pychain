@@ -39,25 +39,25 @@ def get_information(SportsEvent):
                     break
                 else:
                     score_board_data += i
-            try:
-                print(ast.literal_eval(score_board_data))
-            except ValueError as ex:
-                print(score_board_data)
-                _exc_type, exc_value, exc_traceback = sys.exc_info()
-                print("ERROR: %r" % (exc_value))
-                # traceback.print_tb(exc_traceback)
-                last_tb = exc_traceback
-                while last_tb.tb_next:
-                    last_tb = last_tb.tb_next
-                print("Error location: line=%d, col=%d" % (
-                    last_tb.tb_frame.f_locals["node"].lineno,
-                    last_tb.tb_frame.f_locals["node"].col_offset))
+            # try:
+            #     print(ast.literal_eval(score_board_data))
+            # except ValueError as ex:
+            #     print(score_board_data)
+            #     _exc_type, exc_value, exc_traceback = sys.exc_info()
+            #     print("ERROR: %r" % (exc_value))
+            #     # traceback.print_tb(exc_traceback)
+            #     last_tb = exc_traceback
+            #     while last_tb.tb_next:
+            #         last_tb = last_tb.tb_next
+            #     print("Error location: line=%d, col=%d" % (
+            #         last_tb.tb_frame.f_locals["node"].lineno,
+            #         last_tb.tb_frame.f_locals["node"].col_offset))
 
             break
 
     #TODO Find package to parse this as a dicitonary
-    info = parse_scoreboard_data(score_board_data)
-    return info
+    # info = parse_scoreboard_data(score_board_data)
+    return score_board_data
 
 def google_event(SportsEvent):
     search = "What is the score of the " + str(SportsEvent.teams) + " game"

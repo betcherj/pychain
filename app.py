@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from uuid import uuid4
-from .blockChain import BlockChain
+from blockChain import BlockChain
 import json
 import hashlib
 
@@ -12,7 +12,7 @@ node_identifier = str(uuid4()).replace('-', '')
 
 @app.route('/mine', methods=['GET'])
 def mine():
-    values = request.getjson()
+    values = request.get_json()
 
     last_block = blockchain.last_block
 
@@ -39,8 +39,8 @@ def mine():
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
-    values = request.getjson()
-    blockchain.new_transaction(values.sender, values.recepit, values.ammount)
+    values = request.get_json()
+    blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
     return 'posting new transaction'
 
 @app.route('/chain', methods=['GET'])
