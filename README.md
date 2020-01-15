@@ -6,3 +6,7 @@ In this project hope to implement a block chain based smart contract in order to
 associated new concepts and technologies. We plan to use a python implementation of the block chain 
 as well as Flask with postman for our API interaction. The nodes of our block chain will contain signed
 documents allowing for verifiable contracts without the need for a third party.  
+
+###Extensions
+* Incorporate Venmo Api to allow contract self execution
+* Monitor internet for event and terminate on completion of event
