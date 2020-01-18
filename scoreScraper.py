@@ -17,7 +17,13 @@ def parse_scoreboard_data(score_board_data):
     info = {}
     return info
 
+
+
 def get_information(SportsEvent):
+    '''
+    :param SportsEvent:
+    :return: Dict of information for event
+    '''
     #Season type 1 is preseason
     if SportsEvent.league == 'nba':
         search_url = 'https://www.espn.com/' + SportsEvent.league + '/scoreboard/_/date/' + SportsEvent.date
@@ -39,25 +45,17 @@ def get_information(SportsEvent):
                     break
                 else:
                     score_board_data += i
-            # try:
-            #     print(ast.literal_eval(score_board_data))
-            # except ValueError as ex:
-            #     print(score_board_data)
-            #     _exc_type, exc_value, exc_traceback = sys.exc_info()
-            #     print("ERROR: %r" % (exc_value))
-            #     # traceback.print_tb(exc_traceback)
-            #     last_tb = exc_traceback
-            #     while last_tb.tb_next:
-            #         last_tb = last_tb.tb_next
-            #     print("Error location: line=%d, col=%d" % (
-            #         last_tb.tb_frame.f_locals["node"].lineno,
-            #         last_tb.tb_frame.f_locals["node"].col_offset))
-
             break
 
     #TODO Find package to parse this as a dicitonary
     # info = parse_scoreboard_data(score_board_data)
-    return score_board_data
+    info = json.loads(score_board_data)
+    events = info['events']
+    team1, team2 = SportsEvent.teams[0], SportsEvent.teams[1]
+    for event in events:
+        if team1 in event['name'].lower() and team2 in event['name'].lower():
+            return event
+    return None
 
 def google_event(SportsEvent):
     search = "What is the score of the " + str(SportsEvent.teams) + " game"
