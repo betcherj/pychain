@@ -3,7 +3,8 @@ from uuid import uuid4
 from blockChain import BlockChain
 import json
 import hashlib
-
+import wager
+import sportsEvent
 
 app = Flask(__name__)
 blockchain = BlockChain()
@@ -17,11 +18,11 @@ def mine():
     last_block = blockchain.last_block
 
     #Reward for minining
-    blockchain.new_transaction(
-        sender="0",
-        recipient=node_identifier,
-        amount=1,
-    )
+    # blockchain.new_transaction(
+    #     sender="0",
+    #     recipient=node_identifier,
+    #     amount=1,
+    # )
 
     new_proof = blockchain.proof_of_work(last_block['proof'])
     prev_hash = blockchain.hash(last_block)
@@ -31,17 +32,25 @@ def mine():
     response = {
         'message': "New Block Forged",
         'index': block['index'],
-        'transactions': block['transactions'],
+        'wagers': block['wagers'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
     }
+
     return jsonify(response), 200
 
-@app.route('/transactions/new', methods=['POST'])
-def new_transaction():
+@app.route('/bet/new', methods=['POST'])
+def new_NBA_bet():
     values = request.get_json()
-    blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
-    return 'posting new transaction'
+
+    event = sportsEvent.SportsEvent('nba', [values['team1'], values['team2']], values['date'])
+    new_wager = wager.Wager('bob', event, values['winner'], values['amount'])
+    #event = sportsEvent.SportsEvent('nba', ['cavaliers', 'pistons'], '2020107')
+    # new_wager = wager.Wager('bob', event, 'cavaliers', '10')
+    # new_wager2 = wager.Wager('joe', event, 'pistons', '10')
+    blockchain.new_bet(new_wager)
+    #blockchain.new_bet(new_wager2)
+    return 'posting new NBA bet'
 
 @app.route('/chain', methods=['GET'])
 def full_chain():

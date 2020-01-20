@@ -7,34 +7,40 @@ class BlockChain():
     
     def __init__(self):
         self.chain = []
-        self.current_transactions = []
+        self.current_bets = []
+        self.current_unmatched_bets = []
         self.chain = []
         #Genisis block
 
         self.new_block(previous_hash=1, proof =100)
 
+
     def new_block(self, previous_hash, proof):
         block = {
             'index' : len(self.chain) +1,
             'timestamp' :  time.time(),
-            'transactions' : self.current_transactions,
+            'wagers' : self.current_bets,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1])
             }
-        self.current_transactions =[]
-
+        self.current_bets = []
         self.chain.append(block)
-        return block
-    
-    
-    def new_transaction(self, sender, recipient, amount):
-        self.current_transactions.append({
-            'sender' : sender,
-            'recipient' : recipient,
-            'amount' : amount,
-            })
 
+        return block
+
+    def new_bet(self, wager):
+        for i in range(len(self.current_unmatched_bets)):
+            if self.current_unmatched_bets[i].event == wager.event and self.current_unmatched_bets[i].winner != wager.winner and self.current_unmatched_bets[i].amount == wager.amount:
+                self.current_bets.extend(
+                    [self.current_unmatched_bets[i].toJSON(), wager.toJSON()]
+                )
+                self.current_unmatched_bets = self.current_unmatched_bets[:i] + self.current_unmatched_bets[i+1:]
+                return self.last_block['index'] + 1
+        self.current_unmatched_bets.append(
+            wager
+        )
         return self.last_block['index'] + 1
+
     @property
     def last_block(self):
         return self.chain[-1]
