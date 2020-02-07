@@ -9,36 +9,41 @@ class BlockChain():
         self.chain = []
         self.current_bets = []
         self.current_unmatched_bets = []
-        self.chain = []
         #Genisis block
 
-        self.new_block(previous_hash=1, proof =100)
+        self.new_block(previous_hash=1, proof=100)
 
 
     def new_block(self, previous_hash, proof):
         block = {
-            'index' : len(self.chain) +1,
-            'timestamp' :  time.time(),
+            'index' : len(self.chain) + 1,
+            'timestamp' : time.time(),
             'wagers' : self.current_bets,
             'proof': proof,
-            'previous_hash': previous_hash or self.hash(self.chain[-1])
-            }
+            'previous_hash': previous_hash or self.hash(self.chain[-1]),
+        }
         self.current_bets = []
         self.chain.append(block)
 
         return block
 
+    
+    def wagers_aligned(self, wager1, wager2):
+        return (wager1.event == wager2.event) \
+                and (wager1.amount == wager2.amount) \
+                and (wager1.winner != wager2.winner)
+
+
     def new_bet(self, wager):
-        for i in range(len(self.current_unmatched_bets)):
-            if self.current_unmatched_bets[i].event == wager.event and self.current_unmatched_bets[i].winner != wager.winner and self.current_unmatched_bets[i].amount == wager.amount:
-                self.current_bets.extend(
-                    [self.current_unmatched_bets[i].toJSON(), wager.toJSON()]
-                )
-                self.current_unmatched_bets = self.current_unmatched_bets[:i] + self.current_unmatched_bets[i+1:]
+        for unmatched_bet in self.current_unmatched_bets:
+
+            if wagers_aligned(unmatched_bet, wager):
+                self.current_bets.append([unmatched_bet, wager])
+                self.current_unmatched_bets.remove(unmatched_bet)
                 return self.last_block['index'] + 1
-        self.current_unmatched_bets.append(
-            wager
-        )
+
+        self.current_unmatched_bets.append(wager)
+
         return self.last_block['index'] + 1
 
     @property
@@ -54,7 +59,7 @@ class BlockChain():
     def proof_of_work(self, last_proof):
         proof = 0
         while self.valid_proof(last_proof, proof) == False:
-            proof +=1
+            proof += 1
         return proof
 
     @staticmethod
