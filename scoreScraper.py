@@ -31,11 +31,13 @@ def get_information(SportsEvent):
     elif SportsEvent.league == "nfl":
         year = SportsEvent.date
         search_url = u'https://www.espn.com/' + SportsEvent.league + '/ scoreboard/_/year/' + SportsEvent.year + '/seasontype/2/week/' + SportsEvent.date
+    elif SportsEvent.league == "mens-college-basketball":
+        search_url = 'https://www.espn.com/mens-college-basketball/scoreboard/_/date/' + SportsEvent.date
     else:
         print("Error Invalid League")
         return
     soup = get_html(search_url)
-    divs = soup.find_all('script')
+    divs = soup.findAll('script')
     score_board_data  =''
     for div in divs:
         if div.text[0:26] == 'window.espn.scoreboardData':
@@ -58,6 +60,7 @@ def get_information(SportsEvent):
     return None
 
 def google_event(SportsEvent):
+    #TODO search google if espn does not have the event
     search = "What is the score of the " + str(SportsEvent.teams) + " game"
     params = {'lr': 'english', 'q': search.encode('utf8'), 'start': 1, 'num': 1}
     parms = urlencode(params)
