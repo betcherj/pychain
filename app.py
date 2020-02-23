@@ -53,7 +53,14 @@ def register_with_node():
 def validate_and_add_block():
     block_data = request.get_json()
     block = Block(block_data['index'], block_data['time'], block_data['wagers'], block_data['previous_hash'])
-    
+    if blockchain.new_block(block):
+        return "Block added to the chain", 200
+    else:
+        return "Error block discarded", 400
+
+@app.route('/pending_bets')
+def get_pending_tx():
+    return json.dumps(blockchain.current_unmatched_bets)
 
 
 
