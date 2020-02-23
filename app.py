@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from uuid import uuid4
-from blockChain import BlockChain
+from blockChain import BlockChain, Block
 import json
 import hashlib
 import wager
@@ -9,28 +9,8 @@ import sportsEvent
 app = Flask(__name__)
 blockchain = BlockChain()
 node_identifier = str(uuid4()).replace('-', '')
+peers = set()
 
-
-@app.route('/mine', methods=['GET'])
-def mine():
-    values = request.get_json()
-
-    last_block = blockchain.last_block
-
-    new_proof = blockchain.proof_of_work(last_block['proof'])
-    prev_hash = blockchain.hash(last_block)
-
-    block = blockchain.new_block(prev_hash, new_proof)
-
-    response = {
-        'message': "New Block Forged",
-        'index': block['index'],
-        'wagers': block['wagers'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash'],
-    }
-
-    return jsonify(response), 200
 
 @app.route('/bet/new', methods=['POST'])
 def new_NBA_bet():
@@ -39,7 +19,6 @@ def new_NBA_bet():
     event = sportsEvent.SportsEvent('nba', [values['team1'], values['team2']], values['date'])
     new_wager = wager.Wager('bob', event, values['winner'], values['amount'])
     blockchain.new_bet(new_wager)
-
     return 'posting new NBA bet'
 
 @app.route('/chain', methods=['GET'])
@@ -49,6 +28,35 @@ def full_chain():
         'length': len(blockchain.chain)
     }
     return jsonify(response), 200
+
+@app.route('/register_node', methods=['POST'])
+def register_with_peers():
+    nodes = request.get_json()['node_address']
+    if not nodes:
+        return "Invalid Data", 404
+    for node in nodes:
+        peers.add(node)
+
+    return full_chain
+
+@app.route('/register_with_node', mehoods=["POST"])
+def register_with_node():
+    node_address = request.get_json()['node_address']
+    if not node_address:
+        return "Error node address not found", 404
+    data = {'node_address': request.host_url}
+    headers = {'Content type': 'applications/json'}
+
+    response = request.post(node_address + '/register_node', data=json.dumps(data), headers=json.dumps(headers))
+
+@app.route('/add_block', methods=["POST"])
+def validate_and_add_block():
+    block_data = request.get_json()
+    block = Block(block_data['index'], block_data['time'], block_data['wagers'], block_data['previous_hash'])
+    
+
+
+
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port = 5000)

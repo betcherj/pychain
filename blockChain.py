@@ -2,30 +2,30 @@ import time
 import hashlib
 import json
 
+class Block():
+
+    def __init__(self, index, time, wagers, previous_hash):
+        self.index = index
+        self.timestamp = time
+        self.wagers = wagers
+        self.previous_hash = previous_hash
+        self.current_bets = []
+        self.hash = self.hash()
+
+    def hash(self):
+        block_string = json.dumps(self.__dict__, sort_keys=True)
+        return hashlib.sha256(block_string).hexdigest()
+
 
 class BlockChain():
     
     def __init__(self):
-        self.chain = []
+
         self.current_bets = []
         self.current_unmatched_bets = []
         #Genisis block
+        self.chain = [Block(0, time.time(), [], '-1')]
 
-        self.new_block(previous_hash=1, proof=100)
-
-
-    def new_block(self, previous_hash, proof):
-        block = {
-            'index' : len(self.chain) + 1,
-            'timestamp' : time.time(),
-            'wagers' : self.current_bets,
-            'proof': proof,
-            'previous_hash': previous_hash or self.hash(self.chain[-1]),
-        }
-        self.current_bets = []
-        self.chain.append(block)
-
-        return block
 
     
     def wagers_aligned(self, wager1, wager2):
@@ -36,49 +36,19 @@ class BlockChain():
 
     def new_bet(self, wager):
         for unmatched_bet in self.current_unmatched_bets:
-
-            if wagers_aligned(unmatched_bet, wager):
-                self.current_bets.append([unmatched_bet, wager])
+            if self.wagers_aligned(unmatched_bet, wager):
+                self.new_block(Block(self.last_block.index, time.time(), [wager], self.last_block.hash))
                 self.current_unmatched_bets.remove(unmatched_bet)
-                return self.last_block['index'] + 1
+                return self.last_block.index + 1
 
         self.current_unmatched_bets.append(wager)
 
-        return self.last_block['index'] + 1
+        return self.last_block.index + 1
+
+    def new_block(self, block):
+        self.chain.append(block)
+        return True
 
     @property
     def last_block(self):
         return self.chain[-1]
-    
-    @staticmethod
-    def hash(block):
-        #Sorted to make sure we have
-        block_string = json.dumps(block, sort_keys = True).encode()
-        return hashlib.sha256(block_string).hexdigest()
-
-    def proof_of_work(self, last_proof):
-        proof = 0
-        while self.valid_proof(last_proof, proof) == False:
-            proof += 1
-        return proof
-
-    @staticmethod
-    def valid_proof(last_proof, proof):
-        guess = ('{' + str(last_proof) + str(proof) + '}').encode()
-        guess_hash = hashlib.sha256(guess).hexdigest()
-        return guess_hash[:4] == '1234'
-
-
-
-        
-        
-
-
-    
-
-
-
-        
-        
-    
-    
