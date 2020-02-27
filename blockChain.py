@@ -9,7 +9,6 @@ class Block():
         self.timestamp = time
         self.wagers = wagers
         self.previous_hash = previous_hash
-        self.current_bets = []
         self.hash = self.hash()
 
     def hash(self):
@@ -35,17 +34,18 @@ class BlockChain():
 
 
     def new_bet(self, wager):
+        '''Places a new bet and returns True if the bet is matched'''
         for unmatched_bet in self.current_unmatched_bets:
             if self.wagers_aligned(unmatched_bet, wager):
-                self.new_block(Block(self.last_block.index, time.time(), [wager], self.last_block.hash))
+                self.add_block(Block(self.last_block.index, time.time(), [wager], self.last_block.hash))
                 self.current_unmatched_bets.remove(unmatched_bet)
-                return self.last_block.index + 1
+                return True
 
         self.current_unmatched_bets.append(wager)
 
-        return self.last_block.index + 1
+        return False
 
-    def new_block(self, block):
+    def add_block(self, block):
         self.chain.append(block)
         return True
 
