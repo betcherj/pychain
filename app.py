@@ -25,7 +25,8 @@ def new_NBA_bet():
     event = sportsEvent.SportsEvent('nba', [values['team1'], values['team2']], values['date'])
     new_wager = wager.Wager('bob', event, values['winner'], values['amount'])
     if blockchain.new_bet(new_wager):
-        announce_new_block(blockchain.last_block)
+        print('bet matched')
+        # announce_new_block(blockchain.last_block)
     return 'posting new NBA bet'
 
 
@@ -33,7 +34,7 @@ def new_NBA_bet():
 def full_chain():
     chain_info = []
     for block in blockchain.chain:
-        chain_info.append(block.__dict__)
+        chain_info.append(block.toJSON())
     response = {
         'chain': chain_info,
         'length': len(blockchain.chain),

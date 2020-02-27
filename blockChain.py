@@ -11,8 +11,12 @@ class Block():
         self.previous_hash = previous_hash
         self.hash = self.hash()
 
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
+
     def hash(self):
-        block_string = json.dumps(self.__dict__, sort_keys=True)
+        block_string = self.toJSON()
         return hashlib.sha256(block_string.encode('utf-8')).hexdigest()
 
 
@@ -26,7 +30,10 @@ class BlockChain():
         self.chain = [Block(0, time.time(), [], '-1')]
 
 
-    
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
+
     def wagers_aligned(self, wager1, wager2):
         return (wager1.event == wager2.event) \
                 and (wager1.amount == wager2.amount) \
@@ -36,6 +43,12 @@ class BlockChain():
     def new_bet(self, wager):
         '''Places a new bet and returns True if the bet is matched'''
         for unmatched_bet in self.current_unmatched_bets:
+            print("EVENT: ", end="")
+            print(unmatched_bet.event == wager.event)
+            print("AMOUNT: ", end="")
+            print(unmatched_bet.amount == wager.amount)
+            print("WINNER: ", end="")
+            print(unmatched_bet.winner == wager.winner)
             if self.wagers_aligned(unmatched_bet, wager):
                 self.add_block(Block(self.last_block.index, time.time(), [wager], self.last_block.hash))
                 self.current_unmatched_bets.remove(unmatched_bet)

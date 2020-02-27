@@ -13,6 +13,11 @@ class SportsEvent():
         self.result = None
         self.date = date
 
+    def __eq__(self, event):
+        return self.league == event.league and \
+                self.teams == event.teams and \
+                self.date == event.date
+
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__,
                           sort_keys=True, indent=4)
