@@ -13,6 +13,12 @@ node_identifier = str(uuid4()).replace('-', '')
 peers = set()
 
 
+@app.route('/test', methods = ['POST'])
+def test():
+    values = request.get_json()
+    print(values['test'])
+    return str(values['test'])
+
 @app.route('/bet/new', methods=['POST'])
 def new_NBA_bet():
     values = request.get_json()
@@ -25,9 +31,13 @@ def new_NBA_bet():
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
+    chain_info = []
+    for block in blockchain.chain:
+        chain_info.append(block.__dict__)
     response = {
-        'chain': blockchain.chain,
-        'length': len(blockchain.chain)
+        'chain': chain_info,
+        'length': len(blockchain.chain),
+        'peers': list(peers)
     }
     return jsonify(response), 200
 
@@ -65,7 +75,6 @@ def register_with_existing_node():
         return response.content, response.status_code
 
 
-
 @app.route('/add_block', methods=["POST"])
 def validate_and_add_block():
     block_data = request.get_json()
@@ -77,21 +86,19 @@ def validate_and_add_block():
     else:
         return "Error block discarded", 400
 
+
 @app.route('/pending_bets')
 def get_pending_tx():
     return json.dumps(blockchain.current_unmatched_bets)
 
 
 def create_chain_from_dump(chain_dump):
-
     generated_blockchain = BlockChain()
-
     for idx, block_data in enumerate(chain_dump):
         if idx == 0:
             continue
         block = Block(block_data["index"], block_data["time"], block_data["wagers"], block_data["previous_hash"])
         added = generated_blockchain.add_block(block)
-
         if not added:
             raise Exception("Error: Chain Dump Failure")
 
@@ -115,13 +122,11 @@ def consensus():
         return True
     return False
 
+
 def announce_new_block(block):
     for peer in peers:
         url = "http://{}/add_block".format(peer)
         requests.post(url, data=json.dumps(block.__dict__, sort_keys=True))
-
-
-
 
 
 if __name__ == '__main__':

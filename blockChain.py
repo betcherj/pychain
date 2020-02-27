@@ -13,7 +13,7 @@ class Block():
 
     def hash(self):
         block_string = json.dumps(self.__dict__, sort_keys=True)
-        return hashlib.sha256(block_string).hexdigest()
+        return hashlib.sha256(block_string.encode('utf-8')).hexdigest()
 
 
 class BlockChain():
