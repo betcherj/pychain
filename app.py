@@ -1,15 +1,24 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from uuid import uuid4
 from blockChain import BlockChain
 import json
 import hashlib
 import wager
 import sportsEvent
+from config import Config
 
 app = Flask(__name__)
+
+app.config.from_object(Config)
+
 blockchain = BlockChain()
 node_identifier = str(uuid4()).replace('-', '')
 
+@app.route('/testly')
+def hello(name=None):
+    #This will make flask look for index.html in the templates folder
+    chain = full_chain()
+    return render_template('index.html', chain=chain)
 
 @app.route('/mine', methods=['GET'])
 def mine():
@@ -52,4 +61,6 @@ def full_chain():
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port = 5000)
+
+#https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iii-web-forms
 
