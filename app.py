@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from uuid import uuid4
-from blockChain import BlockChain, Block
+from blockChain import *
 import json
 import wager
 import sportsEvent
@@ -13,20 +13,14 @@ node_identifier = str(uuid4()).replace('-', '')
 peers = set()
 
 
-@app.route('/test', methods = ['POST'])
-def test():
-    values = request.get_json()
-    print(values['test'])
-    return str(values['test'])
-
 @app.route('/bet/new', methods=['POST'])
 def new_NBA_bet():
     values = request.get_json()
     event = sportsEvent.SportsEvent('nba', [values['team1'], values['team2']], values['date'])
     new_wager = wager.Wager('bob', event, values['winner'], values['amount'])
     if blockchain.new_bet(new_wager):
-        print('bet matched')
-        # announce_new_block(blockchain.last_block)
+        announce_new_block(blockchain.last_block)
+        return 'bet matched, announcing to chain'
     return 'posting new NBA bet'
 
 
@@ -43,23 +37,24 @@ def full_chain():
     return jsonify(response), 200
 
 
-@app.route('/add_nodes', methods=['POST'])
+@app.route('/register_node', methods=['POST'])
 def register_new_peers():
-    nodes = request.get_json()['node_address']
-    if not nodes:
+    node_address = request.get_json()['node_address']
+    if not node_address:
         return "Invalid Data", 404
-    for node in nodes:
-        peers.add(node)
+    peers.add(node_address)
     return full_chain()
 
 
 @app.route('/register_with', methods=['POST'])
 def register_with_existing_node():
     node_address = request.get_json()["node_address"]
+
     if not node_address:
         return "Invalid data", 400
     data = {"node_address": request.host_url}
-    headers = {'Content-Type': "application/json"}
+    headers = {"Content-Type": "application/json"}
+
     response = requests.post(node_address + "/register_node", data=json.dumps(data), headers=headers)
 
     if response.status_code == 200:
@@ -75,24 +70,6 @@ def register_with_existing_node():
     else:
         return response.content, response.status_code
 
-
-@app.route('/add_block', methods=["POST"])
-def validate_and_add_block():
-    block_data = request.get_json()
-
-    block = Block(block_data['index'], block_data['time'], block_data['wagers'], block_data['previous_hash'])
-    if consensus() and blockchain.wagers_aligned(block.wagers[0], block.wagers[1]):
-        blockchain.add_block(block)
-        return "Block added to the chain", 200
-    else:
-        return "Error block discarded", 400
-
-
-@app.route('/pending_bets')
-def get_pending_tx():
-    return json.dumps(blockchain.current_unmatched_bets)
-
-
 def create_chain_from_dump(chain_dump):
     generated_blockchain = BlockChain()
     for idx, block_data in enumerate(chain_dump):
@@ -102,7 +79,6 @@ def create_chain_from_dump(chain_dump):
         added = generated_blockchain.add_block(block)
         if not added:
             raise Exception("Error: Chain Dump Failure")
-
     return generated_blockchain
 
 
@@ -124,10 +100,24 @@ def consensus():
     return False
 
 
+@app.route('/add_block', methods=['POST'])
+def verify_and_add_block():
+    block_data = request.get_json()
+    block = Block(block_data["index"],
+                  block_data["timestamp"],
+                  block_data["wagers"],
+                  block_data["previous_hash"],)
+    added = blockchain.add_block(block)
+    if not added:
+        return "The block was discarded by the node", 400
+
+    return "Block added to the chain", 201
+
 def announce_new_block(block):
     for peer in peers:
-        url = "http://{}/add_block".format(peer)
-        requests.post(url, data=json.dumps(block.__dict__, sort_keys=True))
+        url = "{}add_block".format(peer)
+        headers = {"Content-Type": "application/json"}
+        requests.post(url, data=block.toJSON(), headers=headers)
 
 
 if __name__ == '__main__':
