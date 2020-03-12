@@ -8,17 +8,17 @@ import sportsEvent
 from config import Config
 
 app = Flask(__name__)
-
 app.config.from_object(Config)
 
 blockchain = BlockChain()
 node_identifier = str(uuid4()).replace('-', '')
 
-@app.route('/testly')
-def hello(name=None):
+@app.route('/')
+@app.route('/index')
+def index(name=None):
     #This will make flask look for index.html in the templates folder
     chain = full_chain()
-    return render_template('index.html', chain=chain)
+    return render_template('index.html', blockcontent = chain)
 
 @app.route('/mine', methods=['GET'])
 def mine():

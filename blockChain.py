@@ -2,7 +2,6 @@ import time
 import hashlib
 import json
 
-
 class BlockChain():
     
     def __init__(self):
