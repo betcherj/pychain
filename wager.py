@@ -8,12 +8,3 @@ class Wager():
         self.event = event
         self.winner = winner
         self.amount = amount
-
-    def toJSON(self):
-        #TODO clean up this response
-        return json.dumps(self,
-                          default=lambda o: o.__dict__,
-                          sort_keys=True,
-                          indent=4)
-
-
