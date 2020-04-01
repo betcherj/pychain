@@ -11,6 +11,8 @@ blockchain = BlockChain()
 
 node_identifier = str(uuid4()).replace('-', '')
 peers = set()
+#TOdo access joint account
+account = set()
 
 
 @app.route('/bet/new', methods=['POST'])
@@ -99,14 +101,57 @@ def consensus():
         return True
     return False
 
+def check_account(block_data):
+     '''
+     checks to see if funds for new bets have been placed in the account
+     block_data["index"],
+     block_data["timestamp"],
+     block_data["wagers"],
+     block_data["previous_hash"]'''
+     #TODO figure out how to add an account here
+     global account
+     #Todo add pointer to last transaction when block is validated
+     last_deposit_i = 0
+
+     #monies = {account: ammount}
+     monies = {}
+
+     for i in range(last_deposit_i, len(account)):
+         depost = account[i]
+
+         monies[depost[0]] = depost[1]
+
+     last_deposit_pointer = len(account)
+
+     for wager in block_data['wagers']:
+        if wager['sender'] in list(monies.keys()) and (monies[wager['sender']] - wager['ammount'] >= 0):
+            monies[wager['sender']] -= wager['ammount']
+        else:
+            return False, wager
+
+     return True, None
+
+
+
+
+
+
 
 @app.route('/add_block', methods=['POST'])
 def verify_and_add_block():
+
+
     block_data = request.get_json()
+
+    verification = check_account(block_data)
+
+    if not verification[0]:
+        return "Bet on " + verification[1]['event'] + " not placed due to inability to verify " + verification[1]['sender'], 444
     block = Block(block_data["index"],
                   block_data["timestamp"],
                   block_data["wagers"],
-                  block_data["previous_hash"],)
+                  block_data["previous_hash"], )
+
     added = blockchain.add_block(block)
     if not added:
         return "The block was discarded by the node", 400
